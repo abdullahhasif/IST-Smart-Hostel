@@ -1,0 +1,291 @@
+{% extends "layout.html" %}
+
+{% block title %}Payments - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="student-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3"><i class="fas fa-money-bill-wave"></i> Payment Management</h1>
+        <p class="lead">Track your hostel payments and submit new payment records.</p>
+    </div>
+</div>
+
+<!-- Payment Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Paid</h6>
+                        <h3 class="mb-0">₹{{ total_paid }}</h3>
+                    </div>
+                    <div>
+                        <i class="fas fa-check-circle fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Pending Payments</h6>
+                        <h3 class="mb-0">₹{{ total_pending }}</h3>
+                    </div>
+                    <div>
+                        <i class="fas fa-hourglass-half fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Security Deposit</h6>
+                        <h3 class="mb-0">₹10,000</h3>
+                    </div>
+                    <div>
+                        <i class="fas fa-shield-alt fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- New Payment Form -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Record New Payment</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('student_payment') }}" id="payment-form" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="payment_type" class="form-label">Payment Type</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                            {{ form.payment_type(class="form-control") }}
+                        </div>
+                        {% if form.payment_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.payment_type.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-rupee-sign"></i></span>
+                            {{ form.amount(class="form-control", placeholder="Enter payment amount") }}
+                        </div>
+                        {% if form.amount.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.amount.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Payment Method</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
+                            {{ form.payment_method(class="form-control") }}
+                        </div>
+                        {% if form.payment_method.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.payment_method.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3" id="transaction_id_group">
+                        <label for="transaction_id" class="form-label">Transaction ID</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                            {{ form.transaction_id(class="form-control", placeholder="Enter transaction reference number") }}
+                        </div>
+                        {% if form.transaction_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.transaction_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">For bank transfers or online payments, provide the transaction reference number.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment History -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Payment History</h5>
+            </div>
+            <div class="card-body">
+                {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Payment Type</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Transaction ID</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                    <tr>
+                                        <td>{{ payment.created_at.strftime('%d %b, %Y') }}</td>
+                                        <td>{{ payment.payment_type }}</td>
+                                        <td>₹{{ payment.amount }}</td>
+                                        <td>{{ payment.payment_method }}</td>
+                                        <td>{{ payment.transaction_id or '-' }}</td>
+                                        <td>
+                                            <span class="badge status-{{ payment.status }}">
+                                                {{ payment.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-money-check-alt fa-4x mb-3 text-muted"></i>
+                        <h5>No Payment Records Found</h5>
+                        <p>You haven't made any payments yet. Use the form to record your first payment.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fee Structure Card -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Hostel Fee Structure</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Room Fee per Semester</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Room Type</th>
+                            <th>Fee (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Single Room</td>
+                            <td>50,000</td>
+                        </tr>
+                        <tr>
+                            <td>Double Room</td>
+                            <td>35,000</td>
+                        </tr>
+                        <tr>
+                            <td>Triple Room</td>
+                            <td>25,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h5>Other Fees</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Fee Type</th>
+                            <th>Amount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Security Deposit (Refundable)</td>
+                            <td>10,000</td>
+                        </tr>
+                        <tr>
+                            <td>Maintenance Fee (per semester)</td>
+                            <td>2,000</td>
+                        </tr>
+                        <tr>
+                            <td>Late Payment Fee</td>
+                            <td>1,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="alert alert-warning mt-3 mb-0">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Payment Deadline:</strong> All hostel fees must be paid within 10 days of room allocation. Late payments will incur an additional fee of ₹1,000.
+        </div>
+    </div>
+</div>
+
+<!-- Payment Instructions -->
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Payment Instructions</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Bank Transfer Details</h5>
+                <div class="alert alert-secondary">
+                    <p><strong>Account Name:</strong> IST Hostel Fund</p>
+                    <p><strong>Account Number:</strong> 12345678901234</p>
+                    <p><strong>Bank Name:</strong> National Bank of Pakistan</p>
+                    <p><strong>Branch Code:</strong> 0123</p>
+                    <p><strong>IFSC Code:</strong> NBP0000123</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h5>Payment Verification Process</h5>
+                <ol>
+                    <li>Make the payment using any of the accepted methods.</li>
+                    <li>Record the payment details in the system using the form.</li>
+                    <li>The hostel administration will verify your payment.</li>
+                    <li>Once verified, the payment status will change to "completed".</li>
+                    <li>A receipt will be available for download in your account.</li>
+                </ol>
+                <p class="mb-0"><strong>Note:</strong> Keep your transaction receipt/details until the payment is verified.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

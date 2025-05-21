@@ -1,0 +1,264 @@
+{% extends "layout.html" %}
+
+{% block title %}Student Dashboard - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="student-alert-container"></div>
+
+<!-- Dashboard Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3"><i class="fas fa-tachometer-alt"></i> Student Dashboard</h1>
+        <p class="lead">Welcome back, {{ current_user.username }}! Manage your hostel accommodation and services.</p>
+    </div>
+</div>
+
+<!-- Status Cards Row -->
+<div class="row mb-4">
+    <!-- Hostel Application Status -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card text-white bg-primary dashboard-card">
+            <div class="card-body">
+                <div class="card-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h5 class="card-title">Application Status</h5>
+                {% if pending_application %}
+                    <p class="card-text">Your application is <span class="badge status-{{ pending_application.status }}">{{ pending_application.status }}</span></p>
+                    <p class="card-text small">Submitted on {{ pending_application.created_at.strftime('%d %b, %Y') }}</p>
+                {% else %}
+                    <p class="card-text">No active application</p>
+                    <a href="{{ url_for('student_booking') }}" class="btn btn-light btn-sm mt-2">Apply Now</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Room Status -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card text-white bg-success dashboard-card">
+            <div class="card-body">
+                <div class="card-icon">
+                    <i class="fas fa-bed"></i>
+                </div>
+                <h5 class="card-title">Room Status</h5>
+                {% if active_booking %}
+                    {% set room = active_booking.room %}
+                    <p class="card-text">Room: <strong>{{ room.room_number }}</strong></p>
+                    <p class="card-text small">{{ room.hostel.name }} • {{ room.room_type }}</p>
+                {% else %}
+                    <p class="card-text">Not currently allocated</p>
+                    <a href="{{ url_for('student_booking') }}" class="btn btn-light btn-sm mt-2">Book Room</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Complaints Status -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card text-white bg-warning dashboard-card">
+            <div class="card-body">
+                <div class="card-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h5 class="card-title">Active Complaints</h5>
+                {% set open_complaints = recent_complaints|selectattr('status', 'equalto', 'open')|list %}
+                {% if open_complaints %}
+                    <p class="card-text">{{ open_complaints|length }} open complaint(s)</p>
+                    <a href="{{ url_for('student_complaints') }}" class="btn btn-light btn-sm mt-2">View Details</a>
+                {% else %}
+                    <p class="card-text">No active complaints</p>
+                    <a href="{{ url_for('student_complaints') }}" class="btn btn-light btn-sm mt-2">Report Issue</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Status -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card text-white bg-info dashboard-card">
+            <div class="card-body">
+                <div class="card-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <h5 class="card-title">Payment Status</h5>
+                {% set pending_payments = recent_payments|selectattr('status', 'equalto', 'pending')|list %}
+                {% if pending_payments %}
+                    <p class="card-text">₹{{ pending_payments|sum(attribute='amount') }} pending</p>
+                    <a href="{{ url_for('student_payment') }}" class="btn btn-light btn-sm mt-2">View Details</a>
+                {% else %}
+                    <p class="card-text">No pending payments</p>
+                    <a href="{{ url_for('student_payment') }}" class="btn btn-light btn-sm mt-2">Payment History</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room Details Section (if allocated) -->
+{% if active_booking %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Current Room Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <img src="https://pixabay.com/get/gef6b66a72f01d79b571f4d156cf5afae9dc59eb10e7540196006b685b628019e5213288d0c2a9577048fc176184b644b356c42cf727a138c9f4833cc77a2628a_1280.jpg" alt="Room Image" class="img-fluid rounded mb-3" style="max-height: 200px;">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Room Information</h5>
+                                <p><strong>Room Number:</strong> {{ active_booking.room.room_number }}</p>
+                                <p><strong>Room Type:</strong> {{ active_booking.room.room_type }}</p>
+                                <p><strong>Capacity:</strong> {{ active_booking.room.capacity }} person(s)</p>
+                                <p><strong>Fee:</strong> ₹{{ active_booking.room.fee_per_semester }} per semester</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Hostel Information</h5>
+                                <p><strong>Hostel:</strong> {{ active_booking.room.hostel.name }}</p>
+                                <p><strong>Address:</strong> {{ active_booking.room.hostel.address }}</p>
+                                <p><strong>Booking Date:</strong> {{ active_booking.created_at.strftime('%d %b, %Y') }}</p>
+                                <p><strong>Duration:</strong> {{ active_booking.start_date.strftime('%d %b, %Y') }} to {{ active_booking.end_date.strftime('%d %b, %Y') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Activity Section -->
+<div class="row">
+    <!-- Recent Complaints -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Complaints</h5>
+                <a href="{{ url_for('student_complaints') }}" class="btn btn-sm btn-light">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_complaints %}
+                    <div class="list-group">
+                        {% for complaint in recent_complaints %}
+                            <div class="list-group-item list-group-item-action complaint-{{ complaint.status }}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ complaint.title }}</h6>
+                                    <small class="text-muted">{{ complaint.created_at.strftime('%d %b') }}</small>
+                                </div>
+                                <p class="mb-1">{{ complaint.description|truncate(100) }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Category: {{ complaint.category }}</small>
+                                    <span class="badge status-{{ complaint.status }}">{{ complaint.status.replace('_', ' ').title() }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-clipboard-check fa-4x mb-3 text-muted"></i>
+                        <p>No complaints have been filed yet.</p>
+                        <a href="{{ url_for('student_complaints') }}" class="btn btn-primary btn-sm">File a Complaint</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Payments -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Payments</h5>
+                <a href="{{ url_for('student_payment') }}" class="btn btn-sm btn-light">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_payments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                    <tr>
+                                        <td>{{ payment.created_at.strftime('%d %b, %Y') }}</td>
+                                        <td>{{ payment.payment_type }}</td>
+                                        <td>₹{{ payment.amount }}</td>
+                                        <td>
+                                            <span class="badge status-{{ payment.status }}">{{ payment.status }}</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-money-check-alt fa-4x mb-3 text-muted"></i>
+                        <p>No payment records found.</p>
+                        <a href="{{ url_for('student_payment') }}" class="btn btn-primary btn-sm">Make a Payment</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Links Section -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{{ url_for('student_profile') }}" class="text-decoration-none">
+                            <div class="p-3 rounded bg-light">
+                                <i class="fas fa-user-circle fa-2x mb-2 text-primary"></i>
+                                <p class="mb-0">Update Profile</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{{ url_for('student_booking') }}" class="text-decoration-none">
+                            <div class="p-3 rounded bg-light">
+                                <i class="fas fa-bed fa-2x mb-2 text-primary"></i>
+                                <p class="mb-0">Book Room</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{{ url_for('student_complaints') }}" class="text-decoration-none">
+                            <div class="p-3 rounded bg-light">
+                                <i class="fas fa-tools fa-2x mb-2 text-primary"></i>
+                                <p class="mb-0">File Complaint</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{{ url_for('student_payment') }}" class="text-decoration-none">
+                            <div class="p-3 rounded bg-light">
+                                <i class="fas fa-credit-card fa-2x mb-2 text-primary"></i>
+                                <p class="mb-0">Make Payment</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

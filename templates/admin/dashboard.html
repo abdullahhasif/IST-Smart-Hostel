@@ -1,0 +1,225 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="admin-alert-container"></div>
+
+<!-- Dashboard Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+        <p class="lead">Manage hostel operations, applications, and facility maintenance.</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <!-- Students Card -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card text-white bg-primary dashboard-card">
+            <div class="card-body">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-count counter-value" data-value="{{ total_students }}">{{ total_students }}</div>
+                <div class="stats-label">Total Students</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rooms Card -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card text-white bg-success dashboard-card">
+            <div class="card-body">
+                <div class="card-icon">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div class="stats-count counter-value" data-value="{{ vacant_rooms }}">{{ vacant_rooms }}</div>
+                <div class="stats-label">Vacant Rooms</div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-light" role="progressbar" style="width: {{ (vacant_rooms / total_rooms * 100) if total_rooms > 0 else 0 }}%"></div>
+                </div>
+                <div class="text-white-50 small mt-1">{{ total_rooms - vacant_rooms }} occupied ({{ ((total_rooms - vacant_rooms) / total_rooms * 100)|round|int if total_rooms > 0 else 0 }}%)</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Applications Card -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card text-white bg-warning dashboard-card">
+            <div class="card-body">
+                <div class="card-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="stats-count counter-value" data-value="{{ pending_applications }}">{{ pending_applications }}</div>
+                <div class="stats-label">Pending Applications</div>
+                {% if pending_applications > 0 %}
+                    <a href="{{ url_for('admin_applications') }}" class="btn btn-sm btn-light mt-2">Review Now</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Complaints Card -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card text-white bg-danger dashboard-card">
+            <div class="card-body">
+                <div class="card-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stats-count counter-value" data-value="{{ open_complaints }}">{{ open_complaints }}</div>
+                <div class="stats-label">Open Complaints</div>
+                {% if open_complaints > 0 %}
+                    <a href="{{ url_for('admin_complaints') }}" class="btn btn-sm btn-light mt-2">View Complaints</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities Section -->
+<div class="row">
+    <!-- Recent Applications -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Applications</h5>
+                <a href="{{ url_for('admin_applications') }}" class="btn btn-sm btn-light">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_applications %}
+                    <div class="list-group">
+                        {% for application in recent_applications %}
+                            <a href="{{ url_for('admin_application_detail', application_id=application.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ application.user.student_profile.full_name if application.user.student_profile else application.user.username }}</h6>
+                                    <small class="text-muted">{{ application.created_at.strftime('%d %b') }}</small>
+                                </div>
+                                <p class="mb-1">
+                                    <span class="badge bg-secondary">{{ application.user.student_profile.roll_number if application.user.student_profile else 'No Roll Number' }}</span>
+                                    {{ application.hostel.name }} • {{ application.room_preference }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Semester: {{ application.semester }}</small>
+                                    <span class="badge status-{{ application.status }}">{{ application.status }}</span>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-clipboard-check fa-4x mb-3 text-muted"></i>
+                        <p>No pending applications at the moment.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Complaints -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Complaints</h5>
+                <a href="{{ url_for('admin_complaints') }}" class="btn btn-sm btn-light">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_complaints %}
+                    <div class="list-group">
+                        {% for complaint in recent_complaints %}
+                            <a href="{{ url_for('admin_complaint_detail', complaint_id=complaint.id) }}" class="list-group-item list-group-item-action complaint-{{ complaint.status }}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ complaint.title }}</h6>
+                                    <small class="text-muted">{{ complaint.created_at.strftime('%d %b') }}</small>
+                                </div>
+                                <p class="mb-1">{{ complaint.description|truncate(100) }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">By: {{ complaint.user.student_profile.full_name if complaint.user.student_profile else complaint.user.username }}</small>
+                                    <div>
+                                        <span class="badge bg-secondary">{{ complaint.category }}</span>
+                                        <span class="badge status-{{ complaint.status }}">{{ complaint.status.replace('_', ' ').title() }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-4x mb-3 text-muted"></i>
+                        <p>No open complaints at the moment.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats Section -->
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Hostel Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <canvas id="hostelOccupancyChart" height="300"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="roomTypeChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Links Section -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{{ url_for('admin_applications') }}" class="text-decoration-none">
+                            <div class="p-3 rounded bg-light">
+                                <i class="fas fa-clipboard-list fa-2x mb-2 text-primary"></i>
+                                <p class="mb-0">Manage Applications</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{{ url_for('admin_rooms') }}" class="text-decoration-none">
+                            <div class="p-3 rounded bg-light">
+                                <i class="fas fa-door-open fa-2x mb-2 text-primary"></i>
+                                <p class="mb-0">Manage Rooms</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{{ url_for('admin_complaints') }}" class="text-decoration-none">
+                            <div class="p-3 rounded bg-light">
+                                <i class="fas fa-tools fa-2x mb-2 text-primary"></i>
+                                <p class="mb-0">Handle Complaints</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{{ url_for('admin_payments') }}" class="text-decoration-none">
+                            <div class="p-3 rounded bg-light">
+                                <i class="fas fa-money-check-alt fa-2x mb-2 text-primary"></i>
+                                <p class="mb-0">Verify Payments</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

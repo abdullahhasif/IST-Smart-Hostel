@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+
+{% block title %}Room Management - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="admin-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-3"><i class="fas fa-door-open"></i> Room Management</h1>
+                <p class="lead">Manage hostel rooms, availability and allocation.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('admin_add_room') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Room
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hostels List -->
+<div class="row">
+    {% for hostel in hostels %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if hostel.name == 'Hostel-I' %}
+                    <img src="https://pixabay.com/get/g68f1c40da91c8f19a9a711be907329df5228cf5141ccdc4608be1f35153c02879f8c35b3e45f54e2eacfdc640feb187ff6c8e1006f2c4c9920e380092e58fb49_1280.jpg" class="card-img-top" alt="{{ hostel.name }}" style="height: 200px; object-fit: cover;">
+                {% elif hostel.name == 'Hostel-II' %}
+                    <img src="https://pixabay.com/get/g6d1a5621248670a8e997f265b07faca9d7c9fdbdbdb8ef15cf416b62384bb6d68c57dbf5becd3edeb40f137f2da7a953428df6190f1714ef0efacf5ef1b8bd23_1280.jpg" class="card-img-top" alt="{{ hostel.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <img src="https://pixabay.com/get/gf543869fc37e651752bb684c21cf2bbe1bf29bbea4918184aa1d33609f813e9ac067c4717b44539f6d19900ca00a5639934ceacf2cde965143ed7ef07835b1f2_1280.jpg" class="card-img-top" alt="{{ hostel.name }}" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ hostel.name }}</h5>
+                    <p class="card-text">{{ hostel.description }}</p>
+                    <p class="card-text"><small class="text-muted">{{ hostel.address }}</small></p>
+                    
+                    <!-- Room statistics -->
+                    {% set total_rooms = hostel.rooms|length %}
+                    {% set available_rooms = hostel.rooms|selectattr('is_available', 'equalto', true)|list|length %}
+                    {% set occupied_rooms = total_rooms - available_rooms %}
+                    {% set occupancy_rate = (occupied_rooms / total_rooms * 100)|round|int if total_rooms > 0 else 0 %}
+                    
+                    <div class="mt-3">
+                        <p class="mb-1">Room Status:</p>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ occupancy_rate }}%">
+                                {{ occupied_rooms }} Occupied ({{ occupancy_rate }}%)
+                            </div>
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ 100 - occupancy_rate }}%">
+                                {{ available_rooms }} Available
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mt-4">
+                        <a href="{{ url_for('admin_hostel_rooms', hostel_id=hostel.id) }}" class="btn btn-primary">
+                            <i class="fas fa-list"></i> View Rooms
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Room Summary -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Room Summary</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Summary cards -->
+            <div class="col-md-4 text-center mb-4">
+                {% set total_rooms = hostels|map(attribute='rooms')|sum(attribute='__len__') %}
+                <div class="stats-count counter-value" data-value="{{ total_rooms }}">{{ total_rooms }}</div>
+                <div class="stats-label">Total Rooms</div>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                {% set all_rooms = [] %}
+                {% for hostel in hostels %}
+                    {% for room in hostel.rooms %}
+                        {% if room.is_available %}
+                            {% set all_rooms = all_rooms + [room] %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                {% set available_rooms = all_rooms|length %}
+                <div class="stats-count counter-value" data-value="{{ available_rooms }}">{{ available_rooms }}</div>
+                <div class="stats-label">Available Rooms</div>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                {% set occupancy_rate = ((total_rooms - available_rooms) / total_rooms * 100)|round|int if total_rooms > 0 else 0 %}
+                <div class="stats-count counter-value" data-value="{{ occupancy_rate }}">{{ occupancy_rate }}</div>
+                <div class="stats-label">Occupancy Rate (%)</div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="col-md-6">
+                <h5 class="mb-3">Rooms by Type</h5>
+                <canvas id="roomTypeChart" height="250"></canvas>
+            </div>
+            
+            <div class="col-md-6">
+                <h5 class="mb-3">Room Availability</h5>
+                <canvas id="roomAvailabilityChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room Management Guidelines -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Room Management Guidelines</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Room Allocation Guidelines</h5>
+                <ul>
+                    <li>First-year students are typically assigned to shared rooms.</li>
+                    <li>Single rooms are prioritized for final-year students.</li>
+                    <li>Students with special needs should be accommodated in appropriate rooms.</li>
+                    <li>Room assignments should consider student preferences when possible.</li>
+                    <li>Students from the same department may be grouped together when beneficial.</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5>Room Maintenance Procedures</h5>
+                <ul>
+                    <li>Regular inspections should be conducted at the beginning and end of each semester.</li>
+                    <li>Report any damages immediately and assign repair tasks to maintenance staff.</li>
+                    <li>Ensure all rooms are properly cleaned before new student check-ins.</li>
+                    <li>Emergency repairs should be prioritized and addressed within 24 hours.</li>
+                    <li>Keep an updated inventory of all room furnishings and equipment.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="alert alert-warning mt-3 mb-0">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Always update room availability status in the system immediately after allocation or when a student vacates a room.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts
+        initializeRoomCharts();
+    });
+</script>
+{% endblock %}

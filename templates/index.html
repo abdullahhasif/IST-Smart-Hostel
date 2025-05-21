@@ -1,0 +1,167 @@
+{% extends "layout.html" %}
+
+{% block title %}IST Smart Hostel System - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section rounded-3 text-center mb-5">
+    <div class="row align-items-center">
+        <div class="col-lg-6 p-5">
+            <h1 class="display-4 fw-bold mb-4">Smart Hostel Management System</h1>
+            <p class="lead mb-4">A Real-Time Resident and Facility Management System for IST's three hostels.</p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'student' %}
+                        <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">Go to Dashboard</a>
+                    {% elif current_user.role == 'admin' %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">Admin Dashboard</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-4 me-md-2">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-secondary btn-lg px-4">Register</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <img src="https://pixabay.com/get/ga5652b0fc54e5c4f0b03113a806196cf8c9c88850a6ea0c41306c21282153967c52e142799101aa8f1be5663553c49a4dc9684652e3025a87d51f56107ab424f_1280.jpg" class="img-fluid rounded-3" alt="IST Campus">
+        </div>
+    </div>
+</div>
+
+<!-- Feature Section -->
+<section class="mb-5">
+    <h2 class="text-center mb-4">Features</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 feature-card">
+                <div class="card-body text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                    <h3 class="card-title">Online Room Booking</h3>
+                    <p class="card-text">Apply for hostel accommodation and book rooms online through a simple process.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 feature-card">
+                <div class="card-body text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3 class="card-title">Complaint Management</h3>
+                    <p class="card-text">Submit and track maintenance complaints with the automated classification system.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 feature-card">
+                <div class="card-body text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3 class="card-title">Payment Tracking</h3>
+                    <p class="card-text">Manage hostel fees, deposits, and automate invoice generation all in one place.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Hostel Showcase -->
+<section class="mb-5">
+    <h2 class="text-center mb-4">Our Hostels</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <img src="https://pixabay.com/get/g6d1a5621248670a8e997f265b07faca9d7c9fdbdbdb8ef15cf416b62384bb6d68c57dbf5becd3edeb40f137f2da7a953428df6190f1714ef0efacf5ef1b8bd23_1280.jpg" class="card-img-top" alt="Hostel I">
+                <div class="card-body">
+                    <h5 class="card-title">Hostel I</h5>
+                    <p class="card-text">Main hostel building for male students with modern facilities and comfortable rooms.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <img src="https://pixabay.com/get/gf543869fc37e651752bb684c21cf2bbe1bf29bbea4918184aa1d33609f813e9ac067c4717b44539f6d19900ca00a5639934ceacf2cde965143ed7ef07835b1f2_1280.jpg" class="card-img-top" alt="Hostel II">
+                <div class="card-body">
+                    <h5 class="card-title">Hostel II</h5>
+                    <p class="card-text">Secondary hostel building for male students with upgraded amenities and study areas.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <img src="https://pixabay.com/get/g7ef5a5827a7673fc9e6def20405e6a2485f1fd8c35816cd22d81bb8e56dc7fc0caabee76981a9ec5e4404e9fcfcf16cde34a393d675de5a264abda9347ab3db2_1280.jpg" class="card-img-top" alt="Hostel III">
+                <div class="card-body">
+                    <h5 class="card-title">Hostel III</h5>
+                    <p class="card-text">Hostel building for female students with secure facilities and comfortable accommodation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="mb-5">
+    <h2 class="text-center mb-4">What Students Say</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="card-text">"The new smart hostel system has made booking a room so much easier. I no longer have to stand in long queues or fill out paper forms!"</p>
+                    <p class="card-text"><small class="text-muted">- Muhammad Ali, Computer Science</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star-half-alt text-warning"></i>
+                    </div>
+                    <p class="card-text">"I love how quickly maintenance issues are resolved now. I reported a plumbing issue and it was fixed the same day!"</p>
+                    <p class="card-text"><small class="text-muted">- Ayesha Khan, Electrical Engineering</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="far fa-star text-warning"></i>
+                    </div>
+                    <p class="card-text">"Being able to track my payments online has been a game-changer. No more confusion about what I've paid and what's pending."</p>
+                    <p class="card-text"><small class="text-muted">- Hassan Raza, Mechanical Engineering</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="text-center py-5 mb-5 bg-primary text-white rounded-3">
+    <h2 class="mb-3">Ready to Experience Smarter Hostel Living?</h2>
+    <p class="lead mb-4">Join IST Smart Hostel System today and enjoy hassle-free hostel management.</p>
+    {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-4">Register Now</a>
+    {% else %}
+        <a href="{{ url_for('student_dashboard' if current_user.role == 'student' else 'admin_dashboard') }}" class="btn btn-light btn-lg px-4">Go to Dashboard</a>
+    {% endif %}
+</section>
+{% endblock %}

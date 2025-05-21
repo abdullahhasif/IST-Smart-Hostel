@@ -1,0 +1,380 @@
+{% extends "layout.html" %}
+
+{% block title %}Payment Management - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="admin-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3"><i class="fas fa-money-bill-wave"></i> Payment Management</h1>
+        <p class="lead">Verify and manage student hostel payments.</p>
+    </div>
+</div>
+
+<!-- Filter and Search Section -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="payment-filter" class="form-label">Filter by Status</label>
+                <select class="form-select" id="payment-filter">
+                    <option value="all">All Payments</option>
+                    <option value="pending" selected>Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="type-filter" class="form-label">Filter by Type</label>
+                <select class="form-select" id="type-filter">
+                    <option value="all">All Types</option>
+                    <option value="Hostel Fee">Hostel Fee</option>
+                    <option value="Security Deposit">Security Deposit</option>
+                    <option value="Late Fee">Late Fee</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="method-filter" class="form-label">Filter by Method</label>
+                <select class="form-select" id="method-filter">
+                    <option value="all">All Methods</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Online Payment">Online Payment</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="payment-search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="payment-search" placeholder="Search by name or transaction ID">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payments Table -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Payments List</h5>
+    </div>
+    <div class="card-body">
+        {% if payments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Transaction ID</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                            <tr class="payment-row" 
+                                data-status="{{ payment.status }}" 
+                                data-type="{{ payment.payment_type }}" 
+                                data-method="{{ payment.payment_method }}"
+                                data-student="{{ payment.user.student_profile.full_name if payment.user.student_profile else payment.user.username }}"
+                                data-transaction="{{ payment.transaction_id or '' }}">
+                                <td>{{ payment.created_at.strftime('%d %b, %Y') }}</td>
+                                <td>{{ payment.user.student_profile.full_name if payment.user.student_profile else payment.user.username }}</td>
+                                <td>{{ payment.payment_type }}</td>
+                                <td>₹{{ payment.amount }}</td>
+                                <td>{{ payment.payment_method }}</td>
+                                <td>{{ payment.transaction_id or '-' }}</td>
+                                <td>
+                                    <span class="badge status-{{ payment.status }}" id="payment-status-{{ payment.id }}">
+                                        {{ payment.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if payment.status == 'pending' %}
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-success btn-sm payment-status-btn" 
+                                                    data-payment-id="{{ payment.id }}" 
+                                                    data-status="completed">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                            <button type="button" class="btn btn-danger btn-sm payment-status-btn" 
+                                                    data-payment-id="{{ payment.id }}" 
+                                                    data-status="failed">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <button type="button" class="btn btn-secondary btn-sm" disabled>
+                                            <i class="fas fa-lock"></i> Processed
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-money-check-alt fa-4x mb-3 text-muted"></i>
+                <h5>No Payments Found</h5>
+                <p>There are no payment records in the system.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Payment Statistics -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Payment Statistics</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Summary stats -->
+            <div class="col-md-4 text-center mb-4">
+                <div class="stats-count">₹{{ payments|selectattr('status', 'equalto', 'completed')|sum(attribute='amount')|int }}</div>
+                <div class="stats-label">Total Collected</div>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                <div class="stats-count">₹{{ payments|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')|int }}</div>
+                <div class="stats-label">Pending Amount</div>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                <div class="stats-count">{{ payments|selectattr('status', 'equalto', 'completed')|list|length }}</div>
+                <div class="stats-label">Completed Payments</div>
+            </div>
+            
+            <!-- Payment type breakdown -->
+            <div class="col-md-6">
+                <h5 class="mb-3">Payments by Type</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Payment Type</th>
+                                <th>Count</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set payment_types = {'Hostel Fee': 0, 'Security Deposit': 0, 'Late Fee': 0, 'Other': 0} %}
+                            {% set payment_amounts = {'Hostel Fee': 0, 'Security Deposit': 0, 'Late Fee': 0, 'Other': 0} %}
+                            
+                            {% for payment in payments %}
+                                {% if payment.status == 'completed' %}
+                                    {% set _ = payment_types.update({payment.payment_type: payment_types[payment.payment_type] + 1}) %}
+                                    {% set _ = payment_amounts.update({payment.payment_type: payment_amounts[payment.payment_type] + payment.amount}) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% for type, count in payment_types.items() %}
+                                <tr>
+                                    <td>{{ type }}</td>
+                                    <td>{{ count }}</td>
+                                    <td>₹{{ payment_amounts[type]|int }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Payment method breakdown -->
+            <div class="col-md-6">
+                <h5 class="mb-3">Payments by Method</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Payment Method</th>
+                                <th>Count</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set payment_methods = {'Cash': 0, 'Bank Transfer': 0, 'Online Payment': 0} %}
+                            {% set method_amounts = {'Cash': 0, 'Bank Transfer': 0, 'Online Payment': 0} %}
+                            
+                            {% for payment in payments %}
+                                {% if payment.status == 'completed' %}
+                                    {% set _ = payment_methods.update({payment.payment_method: payment_methods[payment.payment_method] + 1}) %}
+                                    {% set _ = method_amounts.update({payment.payment_method: method_amounts[payment.payment_method] + payment.amount}) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% for method, count in payment_methods.items() %}
+                                <tr>
+                                    <td>{{ method }}</td>
+                                    <td>{{ count }}</td>
+                                    <td>₹{{ method_amounts[method]|int }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Verification Guidelines -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Payment Verification Guidelines</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>Bank Transfer Verification</h5>
+                <ol>
+                    <li>Verify the transaction ID against bank records.</li>
+                    <li>Confirm that the amount matches the expected fee.</li>
+                    <li>Check that the sender name matches the student's name.</li>
+                    <li>Verify the date of transfer is within the payment window.</li>
+                    <li>If all details match, mark the payment as "completed".</li>
+                </ol>
+            </div>
+            <div class="col-md-4">
+                <h5>Cash Payment Verification</h5>
+                <ol>
+                    <li>Issue a receipt to the student at the time of payment.</li>
+                    <li>Enter the receipt number as the transaction ID.</li>
+                    <li>Ensure the amount is recorded correctly.</li>
+                    <li>Deposit the cash in the hostel fund account.</li>
+                    <li>Mark the payment as "completed" after issuing the receipt.</li>
+                </ol>
+            </div>
+            <div class="col-md-4">
+                <h5>Online Payment Verification</h5>
+                <ol>
+                    <li>Check the payment gateway confirmation.</li>
+                    <li>Verify the transaction ID in the payment gateway dashboard.</li>
+                    <li>Confirm that the amount has been credited to the hostel account.</li>
+                    <li>Check for any payment gateway fees deducted.</li>
+                    <li>Mark the payment as "completed" after confirmation.</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="alert alert-warning mt-3 mb-0">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> If you cannot verify a payment, contact the student for more information before marking it as "failed". Always document the reason for rejecting a payment.
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Payment status filter
+        const paymentFilter = document.getElementById('payment-filter');
+        paymentFilter.addEventListener('change', filterPayments);
+        
+        // Payment type filter
+        const typeFilter = document.getElementById('type-filter');
+        typeFilter.addEventListener('change', filterPayments);
+        
+        // Payment method filter
+        const methodFilter = document.getElementById('method-filter');
+        methodFilter.addEventListener('change', filterPayments);
+        
+        // Search functionality
+        const paymentSearch = document.getElementById('payment-search');
+        paymentSearch.addEventListener('input', filterPayments);
+        
+        function filterPayments() {
+            const selectedStatus = paymentFilter.value;
+            const selectedType = typeFilter.value;
+            const selectedMethod = methodFilter.value;
+            const searchTerm = paymentSearch.value.toLowerCase();
+            
+            const paymentRows = document.querySelectorAll('.payment-row');
+            
+            paymentRows.forEach(row => {
+                const statusMatch = selectedStatus === 'all' || row.getAttribute('data-status') === selectedStatus;
+                const typeMatch = selectedType === 'all' || row.getAttribute('data-type') === selectedType;
+                const methodMatch = selectedMethod === 'all' || row.getAttribute('data-method') === selectedMethod;
+                
+                const student = row.getAttribute('data-student').toLowerCase();
+                const transaction = row.getAttribute('data-transaction').toLowerCase();
+                const searchMatch = student.includes(searchTerm) || transaction.includes(searchTerm);
+                
+                if (statusMatch && typeMatch && methodMatch && searchMatch) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Payment status update buttons
+        const statusButtons = document.querySelectorAll('.payment-status-btn');
+        statusButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const paymentId = this.getAttribute('data-payment-id');
+                const status = this.getAttribute('data-status');
+                
+                // Update the UI status indicator
+                const statusBadge = document.getElementById(`payment-status-${paymentId}`);
+                if (statusBadge) {
+                    statusBadge.textContent = status;
+                    statusBadge.className = `badge status-${status}`;
+                }
+                
+                // Disable the buttons after action
+                const buttonGroup = this.closest('.btn-group');
+                if (buttonGroup) {
+                    const buttons = buttonGroup.querySelectorAll('button');
+                    buttons.forEach(btn => {
+                        btn.disabled = true;
+                    });
+                    
+                    // Replace with processed button
+                    buttonGroup.innerHTML = `
+                        <button type="button" class="btn btn-secondary btn-sm" disabled>
+                            <i class="fas fa-lock"></i> Processed
+                        </button>
+                    `;
+                }
+                
+                // Show alert
+                showAlert(`Payment status updated to ${status}`, status === 'completed' ? 'success' : 'danger');
+                
+                // Redirect to update the status in the database
+                window.location.href = `/admin/payment/${paymentId}/update-status/${status}`;
+            });
+        });
+    });
+    
+    // Utility function to show alerts
+    function showAlert(message, type = 'info') {
+        const alertContainer = document.getElementById('admin-alert-container');
+        if (!alertContainer) return;
+        
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        alertContainer.innerHTML = alertHtml;
+        
+        // Auto-close after 5 seconds
+        setTimeout(() => {
+            const alert = alertContainer.querySelector('.alert');
+            if (alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    }
+</script>
+{% endblock %}
+{% endblock %}

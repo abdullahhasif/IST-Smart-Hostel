@@ -1,0 +1,180 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title }} - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="admin-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-3"><i class="fas fa-door-open"></i> {{ title }}</h1>
+                <p class="lead">{{ 'Add a new room to the hostel' if title == 'Add Room' else 'Update room information' }}</p>
+            </div>
+            <div>
+                <a href="{{ url_for('admin_rooms') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Rooms
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room Form -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-edit"></i> Room Information</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="" class="needs-validation" novalidate>
+            {{ form.hidden_tag() }}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="room_number" class="form-label">Room Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                            {{ form.room_number(class="form-control", placeholder="Enter room number") }}
+                        </div>
+                        {% if form.room_number.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.room_number.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">A unique identifier for this room (e.g., 101, A-12, etc.)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="room_type" class="form-label">Room Type</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-bed"></i></span>
+                            {{ form.room_type(class="form-control") }}
+                        </div>
+                        {% if form.room_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.room_type.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="hostel_id" class="form-label">Hostel</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-building"></i></span>
+                            {{ form.hostel_id(class="form-control") }}
+                        </div>
+                        {% if form.hostel_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.hostel_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="capacity" class="form-label">Capacity</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-users"></i></span>
+                            {{ form.capacity(class="form-control", placeholder="Enter room capacity") }}
+                        </div>
+                        {% if form.capacity.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.capacity.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Number of students that can occupy this room</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="fee_per_semester" class="form-label">Fee per Semester (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-rupee-sign"></i></span>
+                            {{ form.fee_per_semester(class="form-control", placeholder="Enter fee amount") }}
+                        </div>
+                        {% if form.fee_per_semester.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.fee_per_semester.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_available(class="form-check-input") }}
+                            <label class="form-check-label" for="is_available">Is Available</label>
+                        </div>
+                        {% if form.is_available.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.is_available.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Indicates if this room is currently available for booking</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <button type="reset" class="btn btn-secondary">Reset</button>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Room Type Information Card -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Room Type Guidelines</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>Single Room</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> 1 student per room</li>
+                    <li><i class="fas fa-check text-success"></i> Private space</li>
+                    <li><i class="fas fa-check text-success"></i> Recommended fee: ₹50,000 per semester</li>
+                    <li><i class="fas fa-info-circle text-info"></i> Typically assigned to final year students</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5>Double Room</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> 2 students per room</li>
+                    <li><i class="fas fa-check text-success"></i> Shared space</li>
+                    <li><i class="fas fa-check text-success"></i> Recommended fee: ₹35,000 per semester</li>
+                    <li><i class="fas fa-info-circle text-info"></i> Good for most students</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5>Triple Room</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> 3 students per room</li>
+                    <li><i class="fas fa-check text-success"></i> Shared space</li>
+                    <li><i class="fas fa-check text-success"></i> Recommended fee: ₹25,000 per semester</li>
+                    <li><i class="fas fa-info-circle text-info"></i> Economical option for students</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="alert alert-warning mt-3 mb-0">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> Ensure room capacity matches the selected room type. Single rooms should have capacity 1, double rooms should have capacity 2, and triple rooms should have capacity 3.
+        </div>
+    </div>
+</div>
+{% endblock %}

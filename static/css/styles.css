@@ -1,0 +1,185 @@
+/* Custom styles for IST Smart Hostel System */
+
+/* General styles */
+body {
+    background-color: #212529;
+    color: #e9ecef;
+}
+
+/* Status colors */
+.status-pending {
+    background-color: #ffc107;
+    color: white;
+}
+
+.status-approved {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-rejected {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-open {
+    background-color: #007bff;
+    color: white;
+}
+
+.status-in_progress {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.status-resolved {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-completed {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-failed {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Dashboard stats */
+.stats-count {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #0d6efd;
+}
+
+.stats-label {
+    font-size: 1rem;
+    color: #adb5bd;
+}
+
+/* Card styling for dark theme */
+.card {
+    background-color: #2c3034;
+    border-color: #373b3e;
+}
+
+.card-header {
+    background-color: #343a40;
+    border-color: #373b3e;
+}
+
+.table {
+    color: #e9ecef;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.075);
+}
+
+.dashboard-icon {
+    font-size: 2rem;
+    color: #007bff;
+}
+
+/* Profile avatar */
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+
+/* Application badges */
+.application-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+/* Footer */
+.footer {
+    padding: 1.5rem 0;
+    background-color: #343a40;
+    color: white;
+}
+
+/* Room cards */
+.room-card {
+    transition: transform 0.2s;
+    background-color: #2c3034;
+    border-color: #373b3e;
+}
+
+.room-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* Responsive tables */
+@media (max-width: 767.98px) {
+    .responsive-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Timeline */
+.timeline-item {
+    position: relative;
+    padding-left: 3rem;
+    padding-bottom: 1.5rem;
+    border-left: 2px solid #dee2e6;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -0.5rem;
+    top: 0;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: #007bff;
+}
+
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+}
+
+/* Form styles */
+.form-control {
+    background-color: #2c3034;
+    border-color: #373b3e;
+    color: #e9ecef;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    background-color: #2c3034;
+    color: #e9ecef;
+}
+
+/* Custom switch */
+.form-switch .form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* Alert container for dynamic alerts */
+#alert-container, #admin-alert-container, #student-alert-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    width: 300px;
+}

@@ -1,0 +1,193 @@
+{% extends "layout.html" %}
+
+{% block title %}Student Profile - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="student-alert-container"></div>
+
+<!-- Profile Header -->
+<div class="profile-header bg-primary text-white rounded mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <h2>{{ current_user.username }}</h2>
+                <p class="lead">{{ current_user.email }}</p>
+                <p><small>Account created on {{ current_user.created_at.strftime('%d %B, %Y') }}</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Form -->
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-id-card"></i> Student Profile Information</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('student_profile') }}" id="profile-form" class="needs-validation" novalidate>
+            {{ form.hidden_tag() }}
+            
+            <div class="row">
+                <!-- Personal Information -->
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
+                    
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            {{ form.full_name(class="form-control", placeholder="Enter your full name") }}
+                        </div>
+                        {% if form.full_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.full_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="roll_number" class="form-label">Roll Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                            {{ form.roll_number(class="form-control", placeholder="Enter your roll number") }}
+                        </div>
+                        {% if form.roll_number.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.roll_number.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="contact_number" class="form-label">Contact Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                            {{ form.contact_number(class="form-control", placeholder="Enter your contact number") }}
+                        </div>
+                        {% if form.contact_number.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.contact_number.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-home"></i></span>
+                            {{ form.address(class="form-control", placeholder="Enter your home address") }}
+                        </div>
+                        {% if form.address.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.address.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Academic & Emergency Information -->
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2 mb-3">Academic & Emergency Information</h5>
+                    
+                    <div class="mb-3">
+                        <label for="department" class="form-label">Department</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-university"></i></span>
+                            {{ form.department(class="form-control", placeholder="Enter your department") }}
+                        </div>
+                        {% if form.department.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.department.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="semester" class="form-label">Current Semester</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                            {{ form.semester(class="form-control", placeholder="Enter your current semester") }}
+                        </div>
+                        {% if form.semester.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.semester.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="emergency_contact_name" class="form-label">Emergency Contact Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user-shield"></i></span>
+                            {{ form.emergency_contact_name(class="form-control", placeholder="Enter emergency contact's name") }}
+                        </div>
+                        {% if form.emergency_contact_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.emergency_contact_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="emergency_contact_number" class="form-label">Emergency Contact Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                            {{ form.emergency_contact_number(class="form-control", placeholder="Enter emergency contact's number") }}
+                        </div>
+                        {% if form.emergency_contact_number.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.emergency_contact_number.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <button type="reset" class="btn btn-secondary">Reset</button>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Information Card -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Profile Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="fas fa-exclamation-circle"></i> Your profile information is required for hostel accommodation. Make sure all details are accurate and up-to-date.
+        </div>
+        <p>Please note:</p>
+        <ul>
+            <li>Your roll number must match your institution records.</li>
+            <li>Provide a contact number that you check regularly.</li>
+            <li>Emergency contact information is mandatory for safety reasons.</li>
+            <li>Update your profile whenever your personal information changes.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

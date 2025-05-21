@@ -1,0 +1,332 @@
+{% extends "layout.html" %}
+
+{% block title %}Complaints Management - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="admin-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3"><i class="fas fa-exclamation-triangle"></i> Complaints Management</h1>
+        <p class="lead">Review and handle student maintenance complaints.</p>
+    </div>
+</div>
+
+<!-- Filter and Search Section -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="complaint-filter" class="form-label">Filter by Status</label>
+                <select class="form-select" id="complaint-filter">
+                    <option value="all">All Complaints</option>
+                    <option value="open" selected>Open</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="category-filter" class="form-label">Filter by Category</label>
+                <select class="form-select" id="category-filter">
+                    <option value="all">All Categories</option>
+                    <option value="Electrical">Electrical</option>
+                    <option value="Plumbing">Plumbing</option>
+                    <option value="Furniture">Furniture</option>
+                    <option value="Cleanliness">Cleanliness</option>
+                    <option value="Security">Security</option>
+                    <option value="Internet">Internet</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="complaint-search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="complaint-search" placeholder="Search by title or student name">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complaints List -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Complaints List</h5>
+    </div>
+    <div class="card-body">
+        {% if complaints %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for complaint in complaints %}
+                            <tr class="complaint-row" 
+                                data-status="{{ complaint.status }}" 
+                                data-category="{{ complaint.category }}"
+                                data-title="{{ complaint.title }}"
+                                data-student="{{ complaint.user.student_profile.full_name if complaint.user.student_profile else complaint.user.username }}">
+                                <td>{{ complaint.created_at.strftime('%d %b, %Y') }}</td>
+                                <td>{{ complaint.user.student_profile.full_name if complaint.user.student_profile else complaint.user.username }}</td>
+                                <td>{{ complaint.title }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ complaint.category }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge status-{{ complaint.status }}" id="complaint-status-{{ complaint.id }}">
+                                        {{ complaint.status.replace('_', ' ').title() }}
+                                    </span>
+                                </td>
+                                <td>{{ complaint.updated_at.strftime('%d %b, %Y') }}</td>
+                                <td>
+                                    <a href="{{ url_for('admin_complaint_detail', complaint_id=complaint.id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-4x mb-3 text-muted"></i>
+                <h5>No Complaints Found</h5>
+                <p>There are no maintenance complaints in the system.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Complaint Statistics -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Complaint Statistics</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Status count -->
+            <div class="col-md-4 text-center mb-4">
+                <div class="stats-count counter-value" data-value="{{ complaints|selectattr('status', 'equalto', 'open')|list|length }}">
+                    {{ complaints|selectattr('status', 'equalto', 'open')|list|length }}
+                </div>
+                <div class="stats-label">Open Complaints</div>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                <div class="stats-count counter-value" data-value="{{ complaints|selectattr('status', 'equalto', 'in_progress')|list|length }}">
+                    {{ complaints|selectattr('status', 'equalto', 'in_progress')|list|length }}
+                </div>
+                <div class="stats-label">In Progress</div>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                <div class="stats-count counter-value" data-value="{{ complaints|selectattr('status', 'equalto', 'resolved')|list|length }}">
+                    {{ complaints|selectattr('status', 'equalto', 'resolved')|list|length }}
+                </div>
+                <div class="stats-label">Resolved</div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="col-md-6">
+                <h5 class="mb-3">Complaints by Status</h5>
+                <canvas id="complaintStatusChart" height="250"></canvas>
+            </div>
+            
+            <div class="col-md-6">
+                <h5 class="mb-3">Complaints by Category</h5>
+                <canvas id="complaintCategoryChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complaint Handling Guidelines -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Complaint Handling Guidelines</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>Priority Guidelines</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Priority</th>
+                            <th>Response Time</th>
+                            <th>Examples</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-danger">
+                            <td>High</td>
+                            <td>Within 24 hours</td>
+                            <td>Water leakage, electrical hazards, security issues</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>Medium</td>
+                            <td>Within 3 days</td>
+                            <td>Internet issues, broken furniture, water heater problems</td>
+                        </tr>
+                        <tr class="table-info">
+                            <td>Low</td>
+                            <td>Within 7 days</td>
+                            <td>Minor repairs, repainting, non-urgent maintenance</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-4">
+                <h5>Complaint Status Flow</h5>
+                <ol>
+                    <li><strong>Open:</strong> Initial status when a complaint is submitted by a student.</li>
+                    <li><strong>In Progress:</strong> Maintenance staff has been assigned and is working on the issue.</li>
+                    <li><strong>Resolved:</strong> The issue has been fixed and the complaint is closed.</li>
+                </ol>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Always provide clear notes when updating a complaint status, especially when marking as resolved.
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h5>Category Handling</h5>
+                <ul>
+                    <li><strong>Electrical:</strong> Assign to electrical staff, check for safety issues first.</li>
+                    <li><strong>Plumbing:</strong> Assign to plumbing staff, prevent water damage.</li>
+                    <li><strong>Furniture:</strong> Assign to carpentry staff, check inventory for replacements.</li>
+                    <li><strong>Cleanliness:</strong> Assign to housekeeping staff, schedule cleaning.</li>
+                    <li><strong>Security:</strong> Assign to security personnel, address immediately.</li>
+                    <li><strong>Internet:</strong> Assign to IT support, check router and network issues.</li>
+                    <li><strong>Other:</strong> Evaluate and assign to appropriate department.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts
+        fetch('/api/complaint-stats')
+            .then(response => response.json())
+            .then(data => {
+                // Status chart
+                const statusCtx = document.getElementById('complaintStatusChart').getContext('2d');
+                new Chart(statusCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.status.labels,
+                        datasets: [{
+                            data: data.status.data,
+                            backgroundColor: [
+                                'rgba(0, 123, 255, 0.7)',
+                                'rgba(102, 16, 242, 0.7)',
+                                'rgba(40, 167, 69, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(0, 123, 255, 1)',
+                                'rgba(102, 16, 242, 1)',
+                                'rgba(40, 167, 69, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Complaints by Status'
+                            }
+                        }
+                    }
+                });
+                
+                // Category chart
+                const categoryCtx = document.getElementById('complaintCategoryChart').getContext('2d');
+                new Chart(categoryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.category.labels,
+                        datasets: [{
+                            label: 'Number of Complaints',
+                            data: data.category.data,
+                            backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                            borderColor: 'rgba(0, 123, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Complaints by Category'
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error loading complaint stats:', error));
+        
+        // Status filter
+        const complaintFilter = document.getElementById('complaint-filter');
+        complaintFilter.addEventListener('change', filterComplaints);
+        
+        // Category filter
+        const categoryFilter = document.getElementById('category-filter');
+        categoryFilter.addEventListener('change', filterComplaints);
+        
+        // Search functionality
+        const complaintSearch = document.getElementById('complaint-search');
+        complaintSearch.addEventListener('input', filterComplaints);
+        
+        function filterComplaints() {
+            const selectedStatus = complaintFilter.value;
+            const selectedCategory = categoryFilter.value;
+            const searchTerm = complaintSearch.value.toLowerCase();
+            
+            const complaintRows = document.querySelectorAll('.complaint-row');
+            
+            complaintRows.forEach(row => {
+                const statusMatch = selectedStatus === 'all' || row.getAttribute('data-status') === selectedStatus;
+                const categoryMatch = selectedCategory === 'all' || row.getAttribute('data-category') === selectedCategory;
+                
+                const title = row.getAttribute('data-title').toLowerCase();
+                const student = row.getAttribute('data-student').toLowerCase();
+                const searchMatch = title.includes(searchTerm) || student.includes(searchTerm);
+                
+                if (statusMatch && categoryMatch && searchMatch) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

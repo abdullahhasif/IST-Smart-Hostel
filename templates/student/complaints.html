@@ -1,0 +1,243 @@
+{% extends "layout.html" %}
+
+{% block title %}Complaints - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="student-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3"><i class="fas fa-exclamation-triangle"></i> Complaint Management</h1>
+        <p class="lead">Submit and track maintenance complaints for your hostel accommodation.</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- New Complaint Form -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Submit New Complaint</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('student_complaints') }}" id="complaint-form" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-heading"></i></span>
+                            {{ form.title(class="form-control", placeholder="Brief title of the issue") }}
+                        </div>
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                            {{ form.category(class="form-control") }}
+                        </div>
+                        {% if form.category.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.category.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        {{ form.description(class="form-control", rows=5, placeholder="Describe the issue in detail...") }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Provide clear details to help maintenance staff resolve your issue.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Complaint History -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Complaint History</h5>
+            </div>
+            <div class="card-body">
+                {% if complaints %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 16%">Date</th>
+                                    <th style="width: 20%">Title</th>
+                                    <th style="width: 14%">Category</th>
+                                    <th>Description</th>
+                                    <th style="width: 12%">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for complaint in complaints %}
+                                    <tr class="complaint-row" data-status="{{ complaint.status }}" data-category="{{ complaint.category }}">
+                                        <td>{{ complaint.created_at.strftime('%d %b, %Y') }}</td>
+                                        <td>{{ complaint.title }}</td>
+                                        <td>{{ complaint.category }}</td>
+                                        <td>{{ complaint.description|truncate(100) }}</td>
+                                        <td>
+                                            <span class="badge status-{{ complaint.status }}">
+                                                {{ complaint.status.replace('_', ' ').title() }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr class="complaint-details" style="display: none;">
+                                        <td colspan="5">
+                                            <div class="p-3">
+                                                <h6>Full Description:</h6>
+                                                <p>{{ complaint.description }}</p>
+                                                
+                                                {% if complaint.admin_notes %}
+                                                    <h6>Admin Response:</h6>
+                                                    <div class="alert alert-secondary">
+                                                        {{ complaint.admin_notes }}
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <small class="text-muted">Last Updated: {{ complaint.updated_at.strftime('%d %b, %Y %H:%M') }}</small>
+                                                    <button class="btn btn-sm btn-secondary hide-details">Close Details</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Complaint Status Filter -->
+                    <div class="mt-3">
+                        <label for="complaint-filter" class="form-label">Filter by status:</label>
+                        <select class="form-select" id="complaint-filter">
+                            <option value="all" selected>All Complaints</option>
+                            <option value="open">Open</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                        </select>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-check fa-4x mb-3 text-muted"></i>
+                        <h5>No Complaints Found</h5>
+                        <p>You haven't submitted any complaints yet. If you're experiencing issues with your accommodation, please use the form to submit a new complaint.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complaint Guidelines -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Complaint Guidelines</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>How to Submit an Effective Complaint</h5>
+                <ul>
+                    <li><strong>Be specific:</strong> Clearly describe the issue you're facing.</li>
+                    <li><strong>Include location:</strong> Mention your room number and hostel.</li>
+                    <li><strong>Add details:</strong> Include when the issue started and any relevant context.</li>
+                    <li><strong>Categorize correctly:</strong> Select the most appropriate category for faster resolution.</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5>Complaint Resolution Process</h5>
+                <ol>
+                    <li><strong>Submission:</strong> Student submits a complaint through the portal.</li>
+                    <li><strong>Classification:</strong> The system categorizes the complaint.</li>
+                    <li><strong>Assignment:</strong> Hostel administration assigns to maintenance staff.</li>
+                    <li><strong>Resolution:</strong> Issue is addressed and marked as resolved.</li>
+                    <li><strong>Feedback:</strong> Student can view updates and admin notes.</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="alert alert-warning mt-3 mb-0">
+            <i class="fas fa-exclamation-triangle"></i> For emergency issues (such as water leakage, electrical hazards, or security concerns), please contact the hostel warden directly in addition to submitting a complaint.
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show/hide complaint details
+        const complaintRows = document.querySelectorAll('.complaint-row');
+        complaintRows.forEach(row => {
+            row.addEventListener('click', function() {
+                const detailsRow = this.nextElementSibling;
+                
+                // Hide any currently open details
+                document.querySelectorAll('.complaint-details').forEach(r => {
+                    if (r !== detailsRow) {
+                        r.style.display = 'none';
+                    }
+                });
+                
+                // Toggle this detail row
+                detailsRow.style.display = detailsRow.style.display === 'none' ? 'table-row' : 'none';
+            });
+        });
+        
+        // Hide detail buttons
+        const hideButtons = document.querySelectorAll('.hide-details');
+        hideButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.closest('tr').style.display = 'none';
+            });
+        });
+        
+        // Filter complaints by status
+        const complaintFilter = document.getElementById('complaint-filter');
+        if (complaintFilter) {
+            complaintFilter.addEventListener('change', function() {
+                const selectedStatus = this.value;
+                const complaintRows = document.querySelectorAll('.complaint-row');
+                
+                complaintRows.forEach(row => {
+                    const detailsRow = row.nextElementSibling;
+                    detailsRow.style.display = 'none'; // Hide all detail rows
+                    
+                    if (selectedStatus === 'all' || row.getAttribute('data-status') === selectedStatus) {
+                        row.style.display = 'table-row';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

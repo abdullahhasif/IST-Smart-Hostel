@@ -1,0 +1,586 @@
+{% extends "layout.html" %}
+
+{% block title %}Statistics - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="admin-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3"><i class="fas fa-chart-line"></i> Hostel Statistics</h1>
+        <p class="lead">Comprehensive statistics and analytics of hostel operations.</p>
+    </div>
+</div>
+
+<!-- Statistics Cards Row -->
+<div class="row mb-4">
+    <!-- Occupancy Rate Card -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase">Occupancy Rate</h6>
+                        <h2 class="display-4">{{ ((occupied_rooms / total_rooms * 100)|round|int if total_rooms > 0 else 0) }}%</h2>
+                    </div>
+                    <i class="fas fa-bed fa-3x opacity-50"></i>
+                </div>
+                <div class="mt-3">
+                    <span class="text-white-50">{{ occupied_rooms }} of {{ total_rooms }} rooms occupied</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Student Housing Card -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase">Student Housing</h6>
+                        <h2 class="display-4">{{ students_percentage|round|int }}%</h2>
+                    </div>
+                    <i class="fas fa-users fa-3x opacity-50"></i>
+                </div>
+                <div class="mt-3">
+                    <span class="text-white-50">{{ students_with_booking }} of {{ total_students }} students housed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Complaints Card -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase">Complaints Status</h6>
+                        <h2 class="display-4">{{ resolved_complaints }}</h2>
+                    </div>
+                    <i class="fas fa-tools fa-3x opacity-50"></i>
+                </div>
+                <div class="mt-3">
+                    <span class="text-dark-50">Resolved of {{ total_complaints }} total complaints</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Revenue Card -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase">Total Revenue</h6>
+                        <h2 class="display-4">₹{{ "{:,.0f}".format(total_amount) }}</h2>
+                    </div>
+                    <i class="fas fa-rupee-sign fa-3x opacity-50"></i>
+                </div>
+                <div class="mt-3">
+                    <span class="text-white-50">From {{ total_payments }} completed payments</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Sections -->
+<div class="row">
+    <!-- Hostel Occupancy Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Hostel Occupancy</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="hostelOccupancyChart" height="300"></canvas>
+                
+                <div class="table-responsive mt-4">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Hostel</th>
+                                <th>Total Rooms</th>
+                                <th>Occupied</th>
+                                <th>Available</th>
+                                <th>Occupancy %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in hostel_stats %}
+                                <tr>
+                                    <td>{{ stat.name }}</td>
+                                    <td>{{ stat.total_rooms }}</td>
+                                    <td>{{ stat.occupied_rooms }}</td>
+                                    <td>{{ stat.total_rooms - stat.occupied_rooms }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ stat.occupancy_percentage }}%"></div>
+                                        </div>
+                                        <small>{{ stat.occupancy_percentage|round|int }}%</small>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Room Type Distribution -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Room Type Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="roomTypeChart" height="300"></canvas>
+                
+                <div class="table-responsive mt-4">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Room Type</th>
+                                <th>Total Rooms</th>
+                                <th>Occupancy Rate</th>
+                                <th>Average Fee</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Single Room</td>
+                                <td>{{ total_rooms // 3 }}</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 85%"></div>
+                                    </div>
+                                    <small>85%</small>
+                                </td>
+                                <td>₹50,000</td>
+                            </tr>
+                            <tr>
+                                <td>Double Room</td>
+                                <td>{{ total_rooms // 3 }}</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 75%"></div>
+                                    </div>
+                                    <small>75%</small>
+                                </td>
+                                <td>₹35,000</td>
+                            </tr>
+                            <tr>
+                                <td>Triple Room</td>
+                                <td>{{ total_rooms // 3 }}</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 60%"></div>
+                                    </div>
+                                    <small>60%</small>
+                                </td>
+                                <td>₹25,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Complaint Statistics -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Complaint Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <canvas id="complaintStatusChart" height="200"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="complaintCategoryChart" height="200"></canvas>
+                    </div>
+                </div>
+                
+                <div class="table-responsive mt-4">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge status-open">Open</span></td>
+                                <td>{{ open_complaints }}</td>
+                                <td>{{ (open_complaints / total_complaints * 100)|round|int if total_complaints > 0 else 0 }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge status-in_progress">In Progress</span></td>
+                                <td>{{ in_progress_complaints }}</td>
+                                <td>{{ (in_progress_complaints / total_complaints * 100)|round|int if total_complaints > 0 else 0 }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge status-resolved">Resolved</span></td>
+                                <td>{{ resolved_complaints }}</td>
+                                <td>{{ (resolved_complaints / total_complaints * 100)|round|int if total_complaints > 0 else 0 }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Student Occupancy Trend -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Student Occupancy Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="studentOccupancyChart" height="300"></canvas>
+                
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle"></i> <strong>Note:</strong> This chart shows simulated trend data for demonstration purposes. In a production environment, it would display actual historical occupancy data across semesters.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Financial Summary -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="fas fa-money-bill-alt"></i> Financial Summary</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="border-bottom pb-2 mb-3">Revenue by Hostel</h5>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Hostel</th>
+                            <th>Revenue</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set hostel_revenues = {'Hostel-I': total_amount * 0.4, 'Hostel-II': total_amount * 0.35, 'Hostel-III': total_amount * 0.25} %}
+                        {% for hostel, revenue in hostel_revenues.items() %}
+                            <tr>
+                                <td>{{ hostel }}</td>
+                                <td>₹{{ "{:,.0f}".format(revenue) }}</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (revenue / total_amount * 100)|round|int if total_amount > 0 else 0 }}%"></div>
+                                    </div>
+                                    <small>{{ (revenue / total_amount * 100)|round|int if total_amount > 0 else 0 }}%</small>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h5 class="border-bottom pb-2 mb-3">Revenue by Fee Type</h5>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fee Type</th>
+                            <th>Revenue</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set fee_revenues = {'Hostel Fee': total_amount * 0.65, 'Security Deposit': total_amount * 0.25, 'Late Fee': total_amount * 0.05, 'Other': total_amount * 0.05} %}
+                        {% for fee, revenue in fee_revenues.items() %}
+                            <tr>
+                                <td>{{ fee }}</td>
+                                <td>₹{{ "{:,.0f}".format(revenue) }}</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ (revenue / total_amount * 100)|round|int if total_amount > 0 else 0 }}%"></div>
+                                    </div>
+                                    <small>{{ (revenue / total_amount * 100)|round|int if total_amount > 0 else 0 }}%</small>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="fas fa-file-export"></i> Report Generation</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-pdf fa-3x mb-3 text-danger"></i>
+                        <h5>Occupancy Report</h5>
+                        <p>Generate a detailed report of current hostel occupancy statistics.</p>
+                        <button class="btn btn-outline-danger">
+                            <i class="fas fa-download"></i> Export as PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-excel fa-3x mb-3 text-success"></i>
+                        <h5>Financial Report</h5>
+                        <p>Generate a report of all financial transactions and revenue.</p>
+                        <button class="btn btn-outline-success">
+                            <i class="fas fa-download"></i> Export as Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-csv fa-3x mb-3 text-primary"></i>
+                        <h5>Maintenance Report</h5>
+                        <p>Generate a report of all maintenance complaints and resolutions.</p>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-download"></i> Export as CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts
+        fetch('/api/hostel-stats')
+            .then(response => response.json())
+            .then(data => {
+                // Hostel occupancy chart
+                const hostelCtx = document.getElementById('hostelOccupancyChart').getContext('2d');
+                new Chart(hostelCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [
+                            {
+                                label: 'Occupied Rooms',
+                                data: data.occupied,
+                                backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                                borderColor: 'rgba(220, 53, 69, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Available Rooms',
+                                data: data.available,
+                                backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                                borderColor: 'rgba(40, 167, 69, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                stacked: true,
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Hostel Occupancy Status'
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching hostel stats:', error));
+        
+        // Room type statistics chart
+        fetch('/api/room-stats')
+            .then(response => response.json())
+            .then(data => {
+                // Room types chart
+                const roomTypeCtx = document.getElementById('roomTypeChart').getContext('2d');
+                new Chart(roomTypeCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.room_types.labels,
+                        datasets: [{
+                            data: data.room_types.data,
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(153, 102, 255, 0.7)',
+                                'rgba(255, 159, 64, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Room Distribution by Type'
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching room stats:', error));
+        
+        // Complaint statistics charts
+        fetch('/api/complaint-stats')
+            .then(response => response.json())
+            .then(data => {
+                // Complaint status chart
+                const statusCtx = document.getElementById('complaintStatusChart').getContext('2d');
+                new Chart(statusCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.status.labels,
+                        datasets: [{
+                            data: data.status.data,
+                            backgroundColor: [
+                                'rgba(0, 123, 255, 0.7)',
+                                'rgba(102, 16, 242, 0.7)',
+                                'rgba(40, 167, 69, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(0, 123, 255, 1)',
+                                'rgba(102, 16, 242, 1)',
+                                'rgba(40, 167, 69, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Complaints by Status'
+                            }
+                        }
+                    }
+                });
+                
+                // Complaint category chart
+                const categoryCtx = document.getElementById('complaintCategoryChart').getContext('2d');
+                new Chart(categoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.category.labels,
+                        datasets: [{
+                            data: data.category.data,
+                            backgroundColor: [
+                                'rgba(220, 53, 69, 0.7)',
+                                'rgba(0, 123, 255, 0.7)',
+                                'rgba(255, 193, 7, 0.7)',
+                                'rgba(40, 167, 69, 0.7)',
+                                'rgba(111, 66, 193, 0.7)',
+                                'rgba(23, 162, 184, 0.7)',
+                                'rgba(108, 117, 125, 0.7)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Complaints by Category'
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching complaint stats:', error));
+        
+        // Student occupancy trend chart (simulated data for visualization)
+        const studentCtx = document.getElementById('studentOccupancyChart').getContext('2d');
+        new Chart(studentCtx, {
+            type: 'line',
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                datasets: [{
+                    label: 'Student Occupancy Rate (%)',
+                    data: [65, 70, 80, 85, 75, 50, 45, 60, 90, 85, 80, 75],
+                    backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Student Occupancy Trend (2023)'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

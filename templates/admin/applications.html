@@ -1,0 +1,268 @@
+{% extends "layout.html" %}
+
+{% block title %}Applications - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="admin-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3"><i class="fas fa-clipboard-list"></i> Hostel Applications</h1>
+        <p class="lead">Review and manage student applications for hostel accommodation.</p>
+    </div>
+</div>
+
+<!-- Filter and Search Section -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="status-filter" class="form-label">Filter by Status</label>
+                <select class="form-select" id="status-filter">
+                    <option value="all">All Applications</option>
+                    <option value="pending" selected>Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="hostel-filter" class="form-label">Filter by Hostel</label>
+                <select class="form-select" id="hostel-filter">
+                    <option value="all">All Hostels</option>
+                    <option value="1">Hostel-I</option>
+                    <option value="2">Hostel-II</option>
+                    <option value="3">Hostel-III</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="application-search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="application-search" placeholder="Search by name or roll number">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Applications Table -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Applications List</h5>
+    </div>
+    <div class="card-body">
+        {% if applications %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Roll Number</th>
+                            <th>Hostel</th>
+                            <th>Room Preference</th>
+                            <th>Application Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in applications %}
+                            <tr class="application-row" 
+                                data-status="{{ application.status }}" 
+                                data-hostel-id="{{ application.hostel_id }}"
+                                data-student-name="{{ application.user.student_profile.full_name if application.user.student_profile else application.user.username }}"
+                                data-roll-number="{{ application.user.student_profile.roll_number if application.user.student_profile else '' }}">
+                                <td>{{ application.user.student_profile.full_name if application.user.student_profile else application.user.username }}</td>
+                                <td>{{ application.user.student_profile.roll_number if application.user.student_profile else 'N/A' }}</td>
+                                <td>{{ application.hostel.name }}</td>
+                                <td>{{ application.room_preference }}</td>
+                                <td>{{ application.created_at.strftime('%d %b, %Y') }}</td>
+                                <td>
+                                    <span class="badge status-{{ application.status }}" id="application-status-{{ application.id }}">
+                                        {{ application.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin_application_detail', application_id=application.id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-clipboard-check fa-4x mb-3 text-muted"></i>
+                <h5>No Applications Found</h5>
+                <p>There are no hostel applications in the system.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Application Statistics Card -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Application Statistics</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <div class="stats-count counter-value" data-value="{{ applications|selectattr('status', 'equalto', 'pending')|list|length }}">
+                    {{ applications|selectattr('status', 'equalto', 'pending')|list|length }}
+                </div>
+                <div class="stats-label">Pending</div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="stats-count counter-value" data-value="{{ applications|selectattr('status', 'equalto', 'approved')|list|length }}">
+                    {{ applications|selectattr('status', 'equalto', 'approved')|list|length }}
+                </div>
+                <div class="stats-label">Approved</div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="stats-count counter-value" data-value="{{ applications|selectattr('status', 'equalto', 'rejected')|list|length }}">
+                    {{ applications|selectattr('status', 'equalto', 'rejected')|list|length }}
+                </div>
+                <div class="stats-label">Rejected</div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h5 class="border-bottom pb-2 mb-3">Applications by Hostel</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Hostel</th>
+                                <th>Total</th>
+                                <th>Pending</th>
+                                <th>Approved</th>
+                                <th>Rejected</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set hostels = applications|groupby('hostel_id') %}
+                            {% for group in hostels %}
+                                {% set hostel = group.list[0].hostel %}
+                                <tr>
+                                    <td>{{ hostel.name }}</td>
+                                    <td>{{ group.list|length }}</td>
+                                    <td>{{ group.list|selectattr('status', 'equalto', 'pending')|list|length }}</td>
+                                    <td>{{ group.list|selectattr('status', 'equalto', 'approved')|list|length }}</td>
+                                    <td>{{ group.list|selectattr('status', 'equalto', 'rejected')|list|length }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h5 class="border-bottom pb-2 mb-3">Applications by Room Type</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Room Type</th>
+                                <th>Total</th>
+                                <th>Pending</th>
+                                <th>Approved</th>
+                                <th>Rejected</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set room_types = applications|groupby('room_preference') %}
+                            {% for group in room_types %}
+                                <tr>
+                                    <td>{{ group.grouper }}</td>
+                                    <td>{{ group.list|length }}</td>
+                                    <td>{{ group.list|selectattr('status', 'equalto', 'pending')|list|length }}</td>
+                                    <td>{{ group.list|selectattr('status', 'equalto', 'approved')|list|length }}</td>
+                                    <td>{{ group.list|selectattr('status', 'equalto', 'rejected')|list|length }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Application Processing Guidelines -->
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="fas fa-tasks"></i> Application Processing Guidelines</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Review Criteria</h5>
+                <ul>
+                    <li><strong>Completeness:</strong> Check if all required information is provided.</li>
+                    <li><strong>Eligibility:</strong> Verify student status and semester enrollment.</li>
+                    <li><strong>Previous History:</strong> Check for past disciplinary issues or dues.</li>
+                    <li><strong>Room Availability:</strong> Confirm availability of preferred room type.</li>
+                    <li><strong>Special Requirements:</strong> Consider any special needs mentioned.</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5>Processing Steps</h5>
+                <ol>
+                    <li>Review application details thoroughly.</li>
+                    <li>Check student profile for completeness and accuracy.</li>
+                    <li>Verify room availability in the requested hostel.</li>
+                    <li>Approve, reject, or request more information.</li>
+                    <li>Provide clear feedback in admin notes for rejected applications.</li>
+                    <li>For approved applications, proceed to room allocation.</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-3 mb-0">
+            <i class="fas fa-info-circle"></i> <strong>Note:</strong> Process applications in the order they were received. Give priority to students with special needs or circumstances when appropriate.
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status filter functionality
+        const statusFilter = document.getElementById('status-filter');
+        statusFilter.addEventListener('change', filterApplications);
+        
+        // Hostel filter functionality
+        const hostelFilter = document.getElementById('hostel-filter');
+        hostelFilter.addEventListener('change', filterApplications);
+        
+        // Search functionality
+        const applicationSearch = document.getElementById('application-search');
+        applicationSearch.addEventListener('input', filterApplications);
+        
+        function filterApplications() {
+            const selectedStatus = statusFilter.value;
+            const selectedHostel = hostelFilter.value;
+            const searchTerm = applicationSearch.value.toLowerCase();
+            
+            const applicationRows = document.querySelectorAll('.application-row');
+            
+            applicationRows.forEach(row => {
+                const statusMatch = selectedStatus === 'all' || row.getAttribute('data-status') === selectedStatus;
+                const hostelMatch = selectedHostel === 'all' || row.getAttribute('data-hostel-id') === selectedHostel;
+                
+                const studentName = row.getAttribute('data-student-name').toLowerCase();
+                const rollNumber = row.getAttribute('data-roll-number').toLowerCase();
+                const searchMatch = studentName.includes(searchTerm) || rollNumber.includes(searchTerm);
+                
+                if (statusMatch && hostelMatch && searchMatch) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

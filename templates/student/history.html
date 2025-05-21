@@ -1,0 +1,314 @@
+{% extends "layout.html" %}
+
+{% block title %}Booking History - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="student-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3"><i class="fas fa-history"></i> Booking History</h1>
+        <p class="lead">View your past and current hostel booking and application history.</p>
+    </div>
+</div>
+
+<!-- History Tabs -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <ul class="nav nav-tabs card-header-tabs" id="historyTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active text-dark" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab" aria-controls="bookings" aria-selected="true">
+                    <i class="fas fa-bed"></i> Room Bookings
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-dark" id="applications-tab" data-bs-toggle="tab" data-bs-target="#applications" type="button" role="tab" aria-controls="applications" aria-selected="false">
+                    <i class="fas fa-clipboard-list"></i> Applications
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="historyTabsContent">
+            <!-- Bookings Tab -->
+            <div class="tab-pane fade show active" id="bookings" role="tabpanel" aria-labelledby="bookings-tab">
+                {% if bookings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Hostel</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Status</th>
+                                    <th>Booking Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                    <tr class="booking-row" data-booking-id="{{ booking.id }}">
+                                        <td>{{ booking.room.room_number }} ({{ booking.room.room_type }})</td>
+                                        <td>{{ booking.room.hostel.name }}</td>
+                                        <td>{{ booking.start_date.strftime('%d %b, %Y') }}</td>
+                                        <td>{{ booking.end_date.strftime('%d %b, %Y') }}</td>
+                                        <td>
+                                            <span class="badge status-{{ booking.status }}">
+                                                {{ booking.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ booking.created_at.strftime('%d %b, %Y') }}</td>
+                                    </tr>
+                                    <tr class="booking-details" style="display: none;">
+                                        <td colspan="6">
+                                            <div class="p-3">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <h6>Room Details</h6>
+                                                        <p><strong>Room Number:</strong> {{ booking.room.room_number }}</p>
+                                                        <p><strong>Room Type:</strong> {{ booking.room.room_type }}</p>
+                                                        <p><strong>Capacity:</strong> {{ booking.room.capacity }} person(s)</p>
+                                                        <p><strong>Fee:</strong> ₹{{ booking.room.fee_per_semester }} per semester</p>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <h6>Hostel Information</h6>
+                                                        <p><strong>Hostel:</strong> {{ booking.room.hostel.name }}</p>
+                                                        <p><strong>Address:</strong> {{ booking.room.hostel.address }}</p>
+                                                        <p><strong>Description:</strong> {{ booking.room.hostel.description }}</p>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <h6>Booking Timeline</h6>
+                                                        <div class="timeline">
+                                                            <div class="timeline-item">
+                                                                <p><strong>Booking Created:</strong><br>{{ booking.created_at.strftime('%d %b, %Y %H:%M') }}</p>
+                                                            </div>
+                                                            <div class="timeline-item">
+                                                                <p><strong>Check-in Date:</strong><br>{{ booking.start_date.strftime('%d %b, %Y') }}</p>
+                                                            </div>
+                                                            <div class="timeline-item">
+                                                                <p><strong>Check-out Date:</strong><br>{{ booking.end_date.strftime('%d %b, %Y') }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-end mt-3">
+                                                    <button class="btn btn-sm btn-secondary hide-details">Close Details</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bed fa-4x mb-3 text-muted"></i>
+                        <h5>No Booking History</h5>
+                        <p>You don't have any room booking records yet.</p>
+                        <a href="{{ url_for('student_booking') }}" class="btn btn-primary">Book a Room</a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Applications Tab -->
+            <div class="tab-pane fade" id="applications" role="tabpanel" aria-labelledby="applications-tab">
+                {% if applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Hostel</th>
+                                    <th>Room Preference</th>
+                                    <th>Semester</th>
+                                    <th>Status</th>
+                                    <th>Application Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in applications %}
+                                    <tr class="application-row" data-application-id="{{ application.id }}">
+                                        <td>{{ application.hostel.name }}</td>
+                                        <td>{{ application.room_preference }}</td>
+                                        <td>{{ application.semester }}</td>
+                                        <td>
+                                            <span class="badge status-{{ application.status }}">
+                                                {{ application.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ application.created_at.strftime('%d %b, %Y') }}</td>
+                                    </tr>
+                                    <tr class="application-details" style="display: none;">
+                                        <td colspan="5">
+                                            <div class="p-3">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6>Application Details</h6>
+                                                        <p><strong>Hostel:</strong> {{ application.hostel.name }}</p>
+                                                        <p><strong>Room Preference:</strong> {{ application.room_preference }}</p>
+                                                        <p><strong>Semester:</strong> {{ application.semester }}</p>
+                                                        <p><strong>Status:</strong> <span class="badge status-{{ application.status }}">{{ application.status }}</span></p>
+                                                        <p><strong>Application Date:</strong> {{ application.created_at.strftime('%d %b, %Y') }}</p>
+                                                        
+                                                        {% if application.special_requirements %}
+                                                            <p><strong>Special Requirements:</strong> {{ application.special_requirements }}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        {% if application.admin_notes %}
+                                                            <h6>Admin Response</h6>
+                                                            <div class="alert alert-secondary">
+                                                                {{ application.admin_notes }}
+                                                            </div>
+                                                        {% endif %}
+                                                        
+                                                        <h6>Application Status</h6>
+                                                        <div class="progress mb-2">
+                                                            {% if application.status == 'pending' %}
+                                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 33%">Pending</div>
+                                                            {% elif application.status == 'approved' %}
+                                                                <div class="progress-bar bg-success" role="progressbar" style="width: 66%">Approved</div>
+                                                            {% elif application.status == 'rejected' %}
+                                                                <div class="progress-bar bg-danger" role="progressbar" style="width: 100%">Rejected</div>
+                                                            {% endif %}
+                                                        </div>
+                                                        
+                                                        <div class="d-flex justify-content-between small text-muted">
+                                                            <span>Submitted</span>
+                                                            <span>Under Review</span>
+                                                            <span>Decision</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-end mt-3">
+                                                    <button class="btn btn-sm btn-secondary hide-details">Close Details</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-list fa-4x mb-3 text-muted"></i>
+                        <h5>No Application History</h5>
+                        <p>You haven't submitted any hostel applications yet.</p>
+                        <a href="{{ url_for('student_booking') }}" class="btn btn-primary">Apply for Accommodation</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Semester Calendar Card -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Hostel Semester Schedule</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Fall Semester (August - December)</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Application Window
+                        <span class="badge bg-primary">July 15 - July 30</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Room Allocation
+                        <span class="badge bg-primary">August 1 - August 7</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Check-in Period
+                        <span class="badge bg-primary">August 10 - August 15</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Check-out Deadline
+                        <span class="badge bg-primary">December 20</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5>Spring Semester (January - May)</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Application Window
+                        <span class="badge bg-primary">December 15 - December 30</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Room Allocation
+                        <span class="badge bg-primary">January 1 - January 7</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Check-in Period
+                        <span class="badge bg-primary">January 10 - January 15</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Check-out Deadline
+                        <span class="badge bg-primary">May 20</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-3 mb-0">
+            <i class="fas fa-info-circle"></i> All applications and check-in/check-out activities must be completed within the specified dates. Late applications may be considered based on room availability.
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show/hide booking details
+        const bookingRows = document.querySelectorAll('.booking-row');
+        bookingRows.forEach(row => {
+            row.addEventListener('click', function() {
+                const detailsRow = this.nextElementSibling;
+                
+                // Hide any currently open details
+                document.querySelectorAll('.booking-details').forEach(r => {
+                    if (r !== detailsRow) {
+                        r.style.display = 'none';
+                    }
+                });
+                
+                // Toggle this detail row
+                detailsRow.style.display = detailsRow.style.display === 'none' ? 'table-row' : 'none';
+            });
+        });
+        
+        // Show/hide application details
+        const applicationRows = document.querySelectorAll('.application-row');
+        applicationRows.forEach(row => {
+            row.addEventListener('click', function() {
+                const detailsRow = this.nextElementSibling;
+                
+                // Hide any currently open details
+                document.querySelectorAll('.application-details').forEach(r => {
+                    if (r !== detailsRow) {
+                        r.style.display = 'none';
+                    }
+                });
+                
+                // Toggle this detail row
+                detailsRow.style.display = detailsRow.style.display === 'none' ? 'table-row' : 'none';
+            });
+        });
+        
+        // Hide details buttons
+        const hideButtons = document.querySelectorAll('.hide-details');
+        hideButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.closest('tr').style.display = 'none';
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

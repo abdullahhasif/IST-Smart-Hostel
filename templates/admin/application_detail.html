@@ -1,0 +1,255 @@
+{% extends "layout.html" %}
+
+{% block title %}Application Details - IST Smart Hostel System{% endblock %}
+
+{% block content %}
+<div id="admin-alert-container"></div>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2"><i class="fas fa-clipboard-list"></i> Application Details</h1>
+                <p class="lead mb-0">Review and manage hostel application for {{ student.username }}</p>
+            </div>
+            <div>
+                <a href="{{ url_for('admin_applications') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Applications
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Application and Student Information -->
+<div class="row mb-4">
+    <!-- Student Profile -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user"></i> Student Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="profile-avatar mx-auto">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4>{{ profile.full_name if profile else student.username }}</h4>
+                    <p>{{ student.email }}</p>
+                </div>
+                
+                {% if profile %}
+                    <div class="mb-2">
+                        <strong>Roll Number:</strong> {{ profile.roll_number }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Department:</strong> {{ profile.department }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Semester:</strong> {{ profile.semester }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Contact:</strong> {{ profile.contact_number }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Address:</strong> {{ profile.address }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Emergency Contact:</strong> {{ profile.emergency_contact_name }} ({{ profile.emergency_contact_number }})
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Student has not completed their profile.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Application Details -->
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-file-alt"></i> Application Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <strong>Application ID:</strong> #{{ application.id }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Date Applied:</strong> {{ application.created_at.strftime('%d %B, %Y %H:%M') }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Status:</strong> 
+                            <span class="badge status-{{ application.status }}" id="application-status-{{ application.id }}">
+                                {{ application.status }}
+                            </span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Hostel:</strong> {{ application.hostel.name }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Room Preference:</strong> {{ application.room_preference }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Semester:</strong> {{ application.semester }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {% if application.special_requirements %}
+                            <div class="mb-3">
+                                <strong>Special Requirements:</strong>
+                                <p class="mt-1">{{ application.special_requirements }}</p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if application.admin_notes %}
+                            <div class="mb-3">
+                                <strong>Admin Notes:</strong>
+                                <div class="alert alert-secondary mt-1">
+                                    {{ application.admin_notes }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Application Status Update Form -->
+                {% if application.status == 'pending' %}
+                    <div class="mt-3">
+                        <h5 class="border-bottom pb-2 mb-3">Update Application Status</h5>
+                        <form method="POST" class="application-status-form" data-application-id="{{ application.id }}">
+                            {{ status_form.hidden_tag() }}
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="status" class="form-label">Status</label>
+                                        {{ status_form.status(class="form-select") }}
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="admin_notes" class="form-label">Admin Notes</label>
+                                        {{ status_form.admin_notes(class="form-control", placeholder="Provide feedback or reasons for approval/rejection") }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                {{ status_form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+                
+                <!-- Room Allocation Form (for approved applications) -->
+                {% if application.status == 'approved' and allocation_form %}
+                    <div class="mt-4">
+                        <h5 class="border-bottom pb-2 mb-3">Room Allocation</h5>
+                        
+                        <form method="POST" action="{{ url_for('admin_application_detail', application_id=application.id) }}">
+                            {{ allocation_form.hidden_tag() }}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="room_id" class="form-label">Select Room</label>
+                                        {{ allocation_form.room_id(class="form-select") }}
+                                        <div class="form-text">Select an available room matching the student's preference.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <div class="mb-3 w-100">
+                                        <button type="submit" name="submit" value="Allocate Room" class="btn btn-success w-100">
+                                            <i class="fas fa-check-circle"></i> Allocate Room
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Previous Bookings History (if any) -->
+{% set previous_bookings = student.bookings|reject('equalto', active_booking)|list %}
+{% if previous_bookings %}
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-history"></i> Previous Booking History</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Room</th>
+                        <th>Hostel</th>
+                        <th>Period</th>
+                        <th>Status</th>
+                        <th>Booking Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in previous_bookings %}
+                        <tr>
+                            <td>{{ booking.room.room_number }} ({{ booking.room.room_type }})</td>
+                            <td>{{ booking.room.hostel.name }}</td>
+                            <td>{{ booking.start_date.strftime('%d %b, %Y') }} to {{ booking.end_date.strftime('%d %b, %Y') }}</td>
+                            <td>
+                                <span class="badge status-{{ booking.status }}">
+                                    {{ booking.status }}
+                                </span>
+                            </td>
+                            <td>{{ booking.created_at.strftime('%d %b, %Y') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Decision Guidelines -->
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="fas fa-clipboard-check"></i> Application Review Guidelines</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Approval Criteria</h5>
+                <ul>
+                    <li>Student has completed their profile with all required information.</li>
+                    <li>Student is currently enrolled in the current semester.</li>
+                    <li>There are available rooms of the preferred type in the selected hostel.</li>
+                    <li>Student has no outstanding hostel dues from previous semesters.</li>
+                    <li>Student has no history of serious disciplinary issues in the hostel.</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5>Rejection Reasons</h5>
+                <ul>
+                    <li>Incomplete or inaccurate student profile information.</li>
+                    <li>No available rooms of the preferred type in the selected hostel.</li>
+                    <li>Outstanding hostel dues or payments from previous stays.</li>
+                    <li>History of serious violations of hostel rules and regulations.</li>
+                    <li>Application submitted after the deadline for the current semester.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-3 mb-0">
+            <i class="fas fa-info-circle"></i> Always provide clear reasons in the admin notes when rejecting an application to help students understand the decision and what they need to address.
+        </div>
+    </div>
+</div>
+{% endblock %}
