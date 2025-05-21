@@ -409,7 +409,14 @@ def admin_rooms():
     # Get all hostels and rooms
     hostels = Hostel.query.all()
     
-    return render_template('admin/rooms.html', hostels=hostels)
+    # Get total rooms count
+    total_rooms = Room.query.count()
+    available_rooms = Room.query.filter_by(is_available=True).count()
+    
+    return render_template('admin/rooms.html', 
+                          hostels=hostels, 
+                          total_rooms=total_rooms,
+                          available_rooms=available_rooms)
 
 @app.route('/admin/rooms/<int:hostel_id>')
 @login_required

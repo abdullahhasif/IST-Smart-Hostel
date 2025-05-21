@@ -77,7 +77,7 @@
         <div class="row">
             <!-- Summary cards -->
             <div class="col-md-4 text-center mb-4">
-                {% set total_rooms = hostels|map(attribute='rooms')|sum(attribute='__len__') %}
+                <!-- Total rooms count passed from routes.py -->
                 <div class="stats-count counter-value" data-value="{{ total_rooms }}">{{ total_rooms }}</div>
                 <div class="stats-label">Total Rooms</div>
             </div>
