@@ -1,7 +1,3 @@
-Certainly! Based on the structure and contents of the repository, here's a comprehensive `README.md` file for the [IST-Smart-Hostel](https://github.com/abdullahhasif/IST-Smart-Hostel) project:
-
----
-
 # IST-Smart-Hostel
 
 IST-Smart-Hostel is a web-based application designed to streamline hostel management processes. It offers functionalities such as student registration, room allocation, and administrative controls to enhance efficiency and user experience.
