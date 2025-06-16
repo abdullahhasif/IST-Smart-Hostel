@@ -76,7 +76,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase">Total Revenue</h6>
-                        <h2 class="display-4">₹{{ "{:,.0f}".format(total_amount) }}</h2>
+                        <h2 class="display-4">RS{{ "{:,.0f}".format(total_amount) }}</h2>
                     </div>
                     <i class="fas fa-rupee-sign fa-3x opacity-50"></i>
                 </div>
@@ -161,7 +161,7 @@
                                     </div>
                                     <small>85%</small>
                                 </td>
-                                <td>₹50,000</td>
+                                <td>RS50,000</td>
                             </tr>
                             <tr>
                                 <td>Double Room</td>
@@ -172,7 +172,7 @@
                                     </div>
                                     <small>75%</small>
                                 </td>
-                                <td>₹35,000</td>
+                                <td>RS35,000</td>
                             </tr>
                             <tr>
                                 <td>Triple Room</td>
@@ -183,7 +183,7 @@
                                     </div>
                                     <small>60%</small>
                                 </td>
-                                <td>₹25,000</td>
+                                <td>RS25,000</td>
                             </tr>
                         </tbody>
                     </table>
@@ -281,7 +281,7 @@
                         {% for hostel, revenue in hostel_revenues.items() %}
                             <tr>
                                 <td>{{ hostel }}</td>
-                                <td>₹{{ "{:,.0f}".format(revenue) }}</td>
+                                <td>RS{{ "{:,.0f}".format(revenue) }}</td>
                                 <td>
                                     <div class="progress" style="height: 8px;">
                                         <div class="progress-bar bg-success" role="progressbar" style="width: {{ (revenue / total_amount * 100)|round|int if total_amount > 0 else 0 }}%"></div>
@@ -308,7 +308,7 @@
                         {% for fee, revenue in fee_revenues.items() %}
                             <tr>
                                 <td>{{ fee }}</td>
-                                <td>₹{{ "{:,.0f}".format(revenue) }}</td>
+                                <td>RS{{ "{:,.0f}".format(revenue) }}</td>
                                 <td>
                                     <div class="progress" style="height: 8px;">
                                         <div class="progress-bar bg-info" role="progressbar" style="width: {{ (revenue / total_amount * 100)|round|int if total_amount > 0 else 0 }}%"></div>
