@@ -84,7 +84,7 @@
                 <h5 class="card-title">Payment Status</h5>
                 {% set pending_payments = recent_payments|selectattr('status', 'equalto', 'pending')|list %}
                 {% if pending_payments %}
-                    <p class="card-text">₹{{ pending_payments|sum(attribute='amount') }} pending</p>
+                    <p class="card-text">RS{{ pending_payments|sum(attribute='amount') }} pending</p>
                     <a href="{{ url_for('student_payment') }}" class="btn btn-light btn-sm mt-2">View Details</a>
                 {% else %}
                     <p class="card-text">No pending payments</p>
@@ -115,7 +115,7 @@
                                 <p><strong>Room Number:</strong> {{ active_booking.room.room_number }}</p>
                                 <p><strong>Room Type:</strong> {{ active_booking.room.room_type }}</p>
                                 <p><strong>Capacity:</strong> {{ active_booking.room.capacity }} person(s)</p>
-                                <p><strong>Fee:</strong> ₹{{ active_booking.room.fee_per_semester }} per semester</p>
+                                <p><strong>Fee:</strong> RS{{ active_booking.room.fee_per_semester }} per semester</p>
                             </div>
                             <div class="col-md-6">
                                 <h5>Hostel Information</h5>
@@ -194,7 +194,7 @@
                                     <tr>
                                         <td>{{ payment.created_at.strftime('%d %b, %Y') }}</td>
                                         <td>{{ payment.payment_type }}</td>
-                                        <td>₹{{ payment.amount }}</td>
+                                        <td>RS{{ payment.amount }}</td>
                                         <td>
                                             <span class="badge status-{{ payment.status }}">{{ payment.status }}</span>
                                         </td>

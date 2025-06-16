@@ -85,7 +85,7 @@
                                 <td>{{ payment.created_at.strftime('%d %b, %Y') }}</td>
                                 <td>{{ payment.user.student_profile.full_name if payment.user.student_profile else payment.user.username }}</td>
                                 <td>{{ payment.payment_type }}</td>
-                                <td>₹{{ payment.amount }}</td>
+                                <td>RS{{ payment.amount }}</td>
                                 <td>{{ payment.payment_method }}</td>
                                 <td>{{ payment.transaction_id or '-' }}</td>
                                 <td>
@@ -137,12 +137,12 @@
         <div class="row">
             <!-- Summary stats -->
             <div class="col-md-4 text-center mb-4">
-                <div class="stats-count">₹{{ payments|selectattr('status', 'equalto', 'completed')|sum(attribute='amount')|int }}</div>
+                <div class="stats-count">RS{{ payments|selectattr('status', 'equalto', 'completed')|sum(attribute='amount')|int }}</div>
                 <div class="stats-label">Total Collected</div>
             </div>
             
             <div class="col-md-4 text-center mb-4">
-                <div class="stats-count">₹{{ payments|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')|int }}</div>
+                <div class="stats-count">RS{{ payments|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')|int }}</div>
                 <div class="stats-label">Pending Amount</div>
             </div>
             
@@ -178,7 +178,7 @@
                                 <tr>
                                     <td>{{ type }}</td>
                                     <td>{{ count }}</td>
-                                    <td>₹{{ payment_amounts[type]|int }}</td>
+                                    <td>RS{{ payment_amounts[type]|int }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -213,7 +213,7 @@
                                 <tr>
                                     <td>{{ method }}</td>
                                     <td>{{ count }}</td>
-                                    <td>₹{{ method_amounts[method]|int }}</td>
+                                    <td>RS{{ method_amounts[method]|int }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
