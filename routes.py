@@ -13,6 +13,10 @@ from forms import (
     ComplaintStatusForm, RoomForm, RoomAllocationForm
 )
 from utils import admin_required
+from chatbot import HostelChatbot
+
+# Initialize chatbot
+chatbot = HostelChatbot()
 
 # Home route
 @app.route('/')
@@ -715,3 +719,52 @@ def api_hostel_stats():
         'occupied': occupied_data,
         'available': available_data
     })
+
+# Chatbot routes
+@app.route('/chat', methods=['GET', 'POST'])
+@login_required
+def chat():
+    if request.method == 'POST':
+        user_input = request.json.get('message', '')
+        
+        # Prepare user context if available
+        user_context = None
+        if current_user.is_authenticated:
+            user_context = {
+                'user_id': current_user.id,
+                'role': current_user.role,
+                'username': current_user.username
+            }
+            
+            # Add student profile info if available
+            if current_user.student_profile:
+                user_context['student_profile'] = {
+                    'full_name': current_user.student_profile.full_name,
+                    'roll_number': current_user.student_profile.roll_number,
+                    'department': current_user.student_profile.department
+                }
+        
+        # Get response from chatbot
+        response = chatbot.get_response(user_input, user_context)
+        return jsonify({'response': response})
+    
+    return render_template('chat.html')
+
+@app.route('/api/chat/rooms', methods=['GET'])
+@login_required
+def chat_room_availability():
+    hostel_id = request.args.get('hostel_id', type=int)
+    response = chatbot.get_room_availability(hostel_id)
+    return jsonify({'response': response})
+
+@app.route('/api/chat/complaint/<int:complaint_id>', methods=['GET'])
+@login_required
+def chat_complaint_status(complaint_id):
+    response = chatbot.get_complaint_status(complaint_id)
+    return jsonify({'response': response})
+
+@app.route('/api/chat/payments', methods=['GET'])
+@login_required
+def chat_payment_info():
+    response = chatbot.get_payment_info(current_user.id)
+    return jsonify({'response': response})
